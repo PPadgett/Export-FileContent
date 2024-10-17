@@ -42,15 +42,15 @@
 [OutputType([String])]
 Param (
     # The root directory from which to start the search
-    [Parameter()]
+    [Parameter(ParameterSetName = 'ByPath')]
     $Path,
 
     # The output file where the aggregated content will be stored
-    [Parameter()]
+    [Parameter(ParameterSetName = 'ByPath')]
     $OutputFile = "output.txt", 
 
     # The list of file extensions to include in the search
-    [Parameter()]
+    [Parameter(ParameterSetName = 'ByPath')]
     [ValidateSet("*.ps1", "*.md", "*.tf", "*.sh", "*.py", "*.bat", "*.yml", IgnoreCase = $true)]
     [string[]]
     $Extensions = @("*.ps1"),
@@ -61,7 +61,7 @@ Param (
     $Recurse,
 
     # Accept pipeline input for FileInfo objects
-    [Parameter()]
+    [Parameter(ParameterSetName = 'PipelineInput')]
     [System.IO.FileInfo[]]
     $InputObject
 )
@@ -310,31 +310,47 @@ function Export-FileContent {
 }
 
 # Check if the script is being executed directly with parameters, if not is assumed to be dot-sourced for testing
-if ($MyInvocation.MyCommand.CommandType -eq 'ExternalScript' -and $MyInvocation.MyCommand.Name -and $PSBoundParameters.Count -gt 0) {
-    try {
-        # Execute the function based on the parameter set used
-        switch ($PSCmdlet.ParameterSetName) {
-            'ByPath' {
-                Write-Verbose "Executing Export-FileContent function based on parameter set 'ByPath'"
-                Export-FileContent @PSBoundParameters
-                Write-Warning "PSBoundParameters:`n$($PSBoundParameters | Format-List | Out-String)"
-                $paramValue = $MyInvocation.MyCommand.Parameters.pipelineVariable.ParameterSets
-                Write-Warning "MyInvocation.MyCommand.Parameters:$($paramValue | Out-String)"
+# if ($MyInvocation.MyCommand.CommandType -eq 'ExternalScript' -and $MyInvocation.MyCommand.Name -and $PSBoundParameters.Count -gt 0) {
+#     try {
+#         # Execute the function based on the parameter set used
+#         switch ($PSCmdlet.ParameterSetName) {
+#             'ByPath' {
+#                 Write-Verbose "Executing Export-FileContent function based on parameter set 'ByPath'"
+#                 Export-FileContent @PSBoundParameters
+#                 Write-Warning "PSBoundParameters:`n$($PSBoundParameters | Format-List | Out-String)"
+#                 $paramValue = $MyInvocation.MyCommand.Parameters.pipelineVariable #.ParameterSets
+#                 Write-Warning "MyInvocation.MyCommand.Parameters:$($paramValue | Out-String)"
 
-            }
-            'Pipeline' {
-                Write-Verbose "Executing Export-FileContent function based on parameter set 'Pipeline'"
-                Export-FileContent @PSBoundParameters
-            }
-            default {
-                Write-Warning "Unhandled parameter set: $paramSetName. Export-FileContent not executed."
-            }
+#             }
+#             'PipelineInput' {
+#                 Write-Verbose "Executing Export-FileContent function based on parameter set 'Pipeline'"
+#                 Export-FileContent @PSBoundParameters
+#             }
+#             default {
+#                 Write-Warning "Unhandled parameter set: $paramSetName. Export-FileContent not executed."
+#             }
+#         }
+#     }
+#     catch {
+#         Write-Error "An error occurred while executing Export-FileContent: $_"
+#     }
+# }
+# else {
+#     Write-Verbose "Skipping function execution due to the absence of required execution context or parameters. Script Function has been dot-sourced for testing."
+# }
+
+# Check if the script is being executed directly with parameters, if not is assumed to be dot-sourced for testing
+if ($MyInvocation.MyCommand.CommandType -eq 'ExternalScript' -and $MyInvocation.MyCommand.Name -and $PSBoundParameters.Count -gt 0) {
+    Write-Verbose "Identified parameter set: $($PSCmdlet.ParameterSetName)"
+
+    # Execute the function based on the parameter set used passed to the script.
+    switch ($PSCmdlet.ParameterSetName) {
+        '__AllParameterSets' {
+            Write-Verbose "Executing  Invoke-ReadmeAnalyzer function based on parameter set"
+            Invoke-ReadmeAnalyzer @PSBoundParameters
         }
-    }
-    catch {
-        Write-Error "An error occurred while executing Export-FileContent: $_"
     }
 }
 else {
-    Write-Verbose "Skipping function execution due to the absence of required execution context or parameters. Script Function has been dot-sourced for testing."
+    Write-Verbose "Skipping function execution due to the absence of required execution context or parameters. Script Function has been dot-sourced"
 }
