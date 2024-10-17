@@ -346,8 +346,16 @@ if ($MyInvocation.MyCommand.CommandType -eq 'ExternalScript' -and $MyInvocation.
     # Execute the function based on the parameter set used passed to the script.
     switch ($PSCmdlet.ParameterSetName) {
         '__AllParameterSets' {
-            Write-Verbose "Executing  Invoke-ReadmeAnalyzer function based on parameter set"
+            Write-Verbose "Executing Export-FileContent function based on parameter set"
             Invoke-ReadmeAnalyzer @PSBoundParameters
+        }
+        'PipelineInput' {
+            Write-Verbose "Executing Export-FileContent function based on parameter set 'Pipeline'"
+            Export-FileContent @PSBoundParameters
+        }
+        'ByPath' {
+            Write-Verbose "Executing Export-FileContent function based on parameter set 'ByPath'"
+            Export-FileContent @PSBoundParameters
         }
     }
 }
